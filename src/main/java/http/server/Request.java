@@ -1,8 +1,10 @@
 package http.server;
 
+import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.*;
 import java.net.URL;
+import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -28,14 +30,14 @@ public class Request {
 
         if(requestArray.get(1).equals("/")){
             this.contentType="text/html";
-            this.fileName = "document/index.html";
+            this.fileName = "/document/index.html";
         } else {
             if(fetchDest.equals("document")){
                 this.contentType="text/html";
-                this.fileName = requestArray.get(1).substring(1)+".html";
+                this.fileName = requestArray.get(1)+".html";
             }else{
                 this.contentType="image/png";
-                this.fileName = requestArray.get(1).substring(1);
+                this.fileName = requestArray.get(1);
             }
         }
         this.HTTPversion = requestArray.get(2);
@@ -45,26 +47,67 @@ public class Request {
     public String handleGet() throws IOException {
         ClassLoader classloader = Thread.currentThread().getContextClassLoader();
 
-        File fileToUpload = new File(String.valueOf(classloader.getResource(fileName)).substring(6));
+        System.out.println(fileName);
 
-        String response = "HTTP/1.0 ";
-        String endResponse = "Content-Type: "+contentType+"\r\nServer: Bot\r\n\r\n";
+        String path = "target/classes"+fileName;
+
+        File fileToUpload = new File(path);
+
+
+
+        String response = "";
         if(!fileToUpload.exists()){
-            response+="404 Not Found\r\n"+endResponse;
+            response+="HTTP/1.0 404 Not Found\r\ncontent-type: text/html\r\nServer: Bot\r\n\r\n";
 
-            fileToUpload = new File(String.valueOf(classloader.getResource("document/error.html")).substring(6));
+            fileToUpload = new File("target/classes/document/error.html");
 
             BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(fileToUpload)));
             for (String line; (line = reader.readLine()) != null;) {
                 response+=(line);
             }
         } else {
-            response+="200 OK\r\n"+ endResponse;
-            BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(fileToUpload)));
-            for (String line; (line = reader.readLine()) != null;) {
-                response+=(line);
+            if(fileName.contains("html")){
+                response += this.handleGetText(fileToUpload);
+            }else{
+                response += this.handleGetImage(fileToUpload);
             }
+
+
         }
+        return response;
+    }
+
+    private String handleGetImage(File file) throws IOException {
+        String response = "";
+        try {
+            BufferedImage image = ImageIO.read(file);
+            ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+            ImageIO.write(image, "png", byteArrayOutputStream);
+
+            byte[] size = ByteBuffer.allocate(4).putInt(byteArrayOutputStream.size()).array();
+
+            String body = byteArrayOutputStream.toString();
+
+            response += "HTTP/1.0 200 OK\r\ncontent-length: "+size.length+"\r\ncontent-type: image/png\r\nServer: Bot\r\n\r\n"+body;
+        } catch ( IOException e) {
+            response += "HTTP/1.0 400 ERROR\r\nServer: Bot\r\n\r\n";
+        }
+        return response;
+    }
+
+    private String handleGetText(File file) {
+        String response="";
+        try{
+            String body = "";
+            BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(file)));
+            for (String line; (line = reader.readLine()) != null;) {
+                body+=(line);
+            }
+            response+="HTTP/1.0 200 OK\r\ncontent-type: text/html\r\nServer: Bot\r\n\r\n"+body;
+        }catch(IOException e){
+            response+="HTTP/1.0 400 ERROR\r\nServer: Bot\r\n\r\n";
+        }
+
         return response;
     }
 
@@ -75,7 +118,7 @@ public class Request {
         InputStreamReader streamReader;
         BufferedReader reader;
         String response = "HTTP/1.0 ";
-        String endResponse = "Content-type: text/html\r\nServer: Bot\r\n\r\n";
+        String endResponse = "Content-type: "+contentType+"\r\nServer: Bot\r\n\r\n";
         if(is==null){
             response+="404 Not Found\r\n"+endResponse;
         } else {
