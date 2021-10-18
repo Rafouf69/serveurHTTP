@@ -114,12 +114,13 @@ public class Request {
     public String handleHead() throws IOException {
         ClassLoader classloader = Thread.currentThread().getContextClassLoader();
 
-        InputStream is = classloader.getResourceAsStream(fileName);
-        InputStreamReader streamReader;
-        BufferedReader reader;
+        String path = "target/classes"+fileName;
+
+        File fileToUpload = new File(path);
+
         String response = "HTTP/1.0 ";
         String endResponse = "Content-type: "+contentType+"\r\nServer: Bot\r\n\r\n";
-        if(is==null){
+        if(!fileToUpload.exists()){
             response+="404 Not Found\r\n"+endResponse;
         } else {
             response+="200 OK\r\n"+endResponse;
