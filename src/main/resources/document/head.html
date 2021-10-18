@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Head</title>
+</head>
+<body>
+    <button id="post-btn">Send head request</button>
+</body>
+<script>
+    const button = document.getElementById('post-btn');
+
+    button.addEventListener('click', async _ => {
+        try {
+            const response = await fetch('http://localhost:3000/index', {
+                method: 'head',
+                headers: {
+                    'Content-Type': "text/html"
+                }
+            });
+            console.log('Completed!', response);
+        } catch(err) {
+            console.error(`Error: ${err}`);
+        }
+    });
+</script>
+</html>

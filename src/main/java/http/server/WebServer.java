@@ -63,8 +63,16 @@ public class WebServer {
 
 
                 Request myRequest = new Request(request);
-                System.out.println(myRequest.handleGet());
-                out.println(myRequest.handleGet());
+
+                switch (myRequest.getMethodeType()) {
+                    case "GET":
+                        out.println(myRequest.handleGet());
+                        break;
+                    case "HEAD":
+                        out.println(myRequest.handleHead());
+                        break;
+                }
+
                 /*
                 // Send the response
                 // Send the headers
