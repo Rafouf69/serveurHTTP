@@ -5,7 +5,6 @@ package http.server;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
-import java.io.PrintWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
 
@@ -63,7 +62,7 @@ public class WebServer {
 
 
 
-                Request myRequest = new Request(request);
+                HTTPRequest myRequest = new HTTPRequest(request);
 
                 switch (myRequest.getMethodeType()) {
                     case "GET":

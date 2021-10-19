@@ -9,7 +9,7 @@ import java.util.Locale;
 import java.util.Base64;
 import java.util.zip.Deflater;
 
-public class Request {
+public class HTTPRequest {
     private String typeMethode;
     private String fileName;
     private String HTTPversion;
@@ -17,7 +17,7 @@ public class Request {
     private String fetchDest;
     private String contentType;
 
-    public Request(String requestHeader){
+    public HTTPRequest(String requestHeader){
         List<String> requestArray = Arrays.asList(requestHeader.split(" "));
         this.typeMethode = requestArray.get(0);
 
