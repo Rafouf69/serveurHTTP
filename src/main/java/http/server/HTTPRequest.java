@@ -116,6 +116,7 @@ public class HTTPRequest {
 
     public void handlePost(OutputStream out) throws IOException{
         String[] data = fileName.split("/\\?");
+
         String path = "target/classes"+data[0];
         File fileToUpload = new File(path);
 
