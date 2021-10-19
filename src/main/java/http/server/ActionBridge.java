@@ -22,9 +22,8 @@ public class ActionBridge {
         }
     }
 
-    private void onGet(HTTPRequest request, HTTPResponse response) {
+    private void doGet(HTTPRequest request, HTTPResponse response) {
         String path = request.getPath();
-
     }
 
     private void doHead(HTTPRequest request, HTTPResponse response){
