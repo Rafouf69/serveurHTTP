@@ -47,6 +47,18 @@ public class WebServer {
                         remote.getInputStream()));
                 OutputStream out = remote.getOutputStream();
 
+                HTTPRequestReader requestReader = new HTTPRequestReader(in);
+
+                HTTPRequest request;
+
+                HTTPResponse response = new HTTPResponse();
+
+                request = requestReader.getRequest();
+                new ActionBridge(response, request);
+
+                response.emitHTTPResponse(out);
+
+                /*
                 // read the data sent. We basically ignore it,
                 // stop reading once a blank line is hit. This
                 // blank line signals the end of the client HTTP
@@ -71,7 +83,7 @@ public class WebServer {
                     case "HEAD":
                         myRequest.handleHead(out);
                         break;
-                }
+                }*/
 
                 /*
                 // Send the response
@@ -84,6 +96,7 @@ public class WebServer {
                 // Send the HTML page
                 out.println("<H1>Welcome to the Ultra Mini-WebServer</H1>");
                 */
+
                 out.flush();
                 remote.close();
             } catch (Exception e) {

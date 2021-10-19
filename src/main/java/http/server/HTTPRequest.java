@@ -3,42 +3,25 @@ package http.server;
 
 import java.io.*;
 import java.nio.charset.StandardCharsets;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Locale;
-import java.util.Base64;
+import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.zip.Deflater;
 
 public class HTTPRequest {
-    private String typeMethode;
+    private HashMap<String, String> headers = new HashMap<>();
+    private HashMap<String, String> queryParams = new HashMap<>();
+
+    private HTTPMethod method;
     private String fileName;
-    private String HTTPversion;
-    private String host;
     private String fetchDest;
     private String contentType;
+    private String rawPath;
+    private String path;
+    private String body;
 
     public HTTPRequest(String requestHeader){
-        List<String> requestArray = Arrays.asList(requestHeader.split(" "));
-        this.typeMethode = requestArray.get(0);
-
-        int index = requestArray.indexOf("Sec-Fetch-Dest:");
-
-        fetchDest = requestArray.get(index+1);
-
-        if(requestArray.get(1).equals("/")){
-            this.contentType="text/html";
-            this.fileName = "/document/index.html";
-        } else {
-            if(fetchDest.equals("document") && !requestArray.get(1).toLowerCase(Locale.ROOT).contains("png")){
-                this.contentType="text/html";
-                this.fileName = requestArray.get(1)+".html";
-            }else{
-                this.contentType="image/png";
-                this.fileName = requestArray.get(1);
-            }
-        }
-        this.HTTPversion = requestArray.get(2);
-        this.host = requestArray.get(4);
+        parse(requestHeader);
     }
 
     public void handleGet(OutputStream out) throws IOException {
@@ -109,22 +92,76 @@ public class HTTPRequest {
 
     }
 
-    public void handleHead(OutputStream out) throws IOException {
-        String path = "target/classes"+fileName;
+    private void parse(String rawRequest) {
+        //  Regex to extract info from req. :      method      path  protocol    headers          body
+        //Pattern regex = Pattern.compile("^([A-Za-z]+)\\s(.+?)\\s(.+?)\\r\\n(.*?)(?:\\r\\n\\r\\n(.*))?$", Pattern.DOTALL);
 
-        File fileToUpload = new File(path);
 
-        String response = "HTTP/1.0 ";
-        String endResponse = "Content-type: "+contentType+"\r\nServer: Bot\r\n\r\n";
-        if(!fileToUpload.exists()){
-            response+="404 Not Found\r\n"+endResponse;
-        } else {
-            response+="200 OK\r\n"+endResponse;
+        String [] headerBody = rawRequest.split("\\r\\n\\r\\n");
+
+        String [] line = headerBody[0].split("\\r\\n");
+
+        try {
+            String[] firstLine = line[0].split(" ");
+            this.method = HTTPMethod.valueOf(firstLine[0]);
+            this.rawPath = firstLine[1];
+
+            String[] rawPathSplit = this.rawPath.split("\\?");
+            this.path = rawPathSplit[0];
+            /*if (rawPathSplit.length > 1) {
+                    String[] rawQueryParamsSplit = rawPathSplit[1].split("&");
+
+                    for (String rawQueryParams : rawQueryParamsSplit) {
+                        String[] keyValues = rawQueryParams.split("=");
+
+                        if (keyValues.length > 1) {
+                            this.queryParams.put(keyValues[0], keyValues[1]);
+                        } else {
+                            this.queryParams.put(keyValues[0], "");
+                        }
+                    }
+                }*/
+
+            if(headerBody.length>1){
+                this.body = headerBody[2];
+            }
+
+            ArrayList<String> rawHeaders = new ArrayList<>();
+
+            for(int i=1; i<line.length; i++){
+                rawHeaders.add(line[i]);
+            }
+
+            for (String rawHeader : rawHeaders) {
+                String[] rowSplit = rawHeader.split(": ");
+                this.headers.put(rowSplit[0].toLowerCase(), rowSplit[1].toLowerCase());
+            }
+        } catch (Exception e) {
+            System.out.println("Error in parser: "+e);
         }
-        out.write(response.getBytes(StandardCharsets.UTF_8));
     }
 
-    public String getMethodeType(){
-        return typeMethode;
+    public String getPath(){
+        return path;
+    }
+
+    public HTTPMethod getMethod() {
+        return method;
+    }
+
+    public String getHeaders(String key) {
+        return headers.get(key.toLowerCase(Locale.ROOT));
+    }
+
+    public String getRawPath() {
+        return rawPath;
+    }
+
+    public String getBody() {
+        return body;
+    }
+
+    public String getQueryParams(String key) {
+        return queryParams.get(key.toLowerCase(Locale.ROOT));
     }
 }
