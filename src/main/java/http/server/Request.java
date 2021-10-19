@@ -41,7 +41,7 @@ public class Request {
         this.host = requestArray.get(4);
     }
 
-    public String handleGet() throws IOException {
+    public void handleGet(OutputStream out) throws IOException {
         ClassLoader classloader = Thread.currentThread().getContextClassLoader();
 
         System.out.println(fileName);
@@ -64,42 +64,34 @@ public class Request {
             }
         } else {
             if(fileName.contains("html")){
-                response = this.handleGetText(fileToUpload);
+                this.handleGetText(fileToUpload, out);
             }else{
-                response = this.handleGetImage(fileToUpload);
+                this.handleGetImage(fileToUpload, out);
             }
-
-
         }
-        return response;
     }
 
-    private String handleGetImage(File file) throws IOException {
+    private void handleGetImage(File file, OutputStream out) throws IOException {
         String response = "";
         try {
-            /*BufferedImage image = ImageIO.read(file);
-            ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-            ImageIO.write(image, "png", byteArrayOutputStream);*/
-
             FileInputStream imageInFile = new FileInputStream(file);
             byte imageData[] = new byte[(int) file.length()];
             imageInFile.read(imageData);
-            imageData = Base64.getEncoder().encode(imageData);
-            Deflater compresser = new Deflater();
-            compresser.deflate(imageData);
-            String imageDataString = new String(imageData, StandardCharsets.UTF_8);;
             imageInFile.close();
             System.out.println("Image Successfully Manipulated!");
 
-            response += "HTTP/1.0 200 OK\r\ncontent-length: "+file.length()/8+"\r\ncontent-type: image/png\r\nServer: Bot\r\n\r\n"+"data:image/png;base64,"+imageDataString;
+            response = "HTTP/1.0 200 OK\r\ncontent-length: "+file.length()/8+"\r\ncontent-type: image/png\r\nServer: Bot\r\n\r\n";
+            out.write(response.getBytes(StandardCharsets.UTF_8));
+
+            out.write(imageData);
         } catch ( IOException e) {
-            response += "HTTP/1.0 400 ERROR\r\nServer: Bot\r\n\r\n";
+            response = "HTTP/1.0 400 ERROR\r\nServer: Bot\r\n\r\n";
+            out.write(response.getBytes(StandardCharsets.UTF_8));
         }
         System.out.println("image : \n"+response);
-        return response;
     }
 
-    private String handleGetText(File file) {
+    private void handleGetText(File file, OutputStream out) throws IOException {
         String response="";
         try{
             String body = "";
@@ -107,15 +99,17 @@ public class Request {
             for (String line; (line = reader.readLine()) != null;) {
                 body+=(line);
             }
-            response+="HTTP/1.0 200 OK\r\ncontent-type: text/html\r\nServer: Bot\r\n\r\n"+body;
+            response="HTTP/1.0 200 OK\r\ncontent-type: text/html\r\nServer: Bot\r\n\r\n";
+            out.write(response.getBytes(StandardCharsets.UTF_8));
+            out.write(body.getBytes(StandardCharsets.UTF_8));
         }catch(IOException e){
-            response+="HTTP/1.0 400 ERROR\r\nServer: Bot\r\n\r\n";
+            response="HTTP/1.0 400 ERROR\r\nServer: Bot\r\n\r\n";
+            out.write(response.getBytes(StandardCharsets.UTF_8));
         }
 
-        return response;
     }
 
-    public String handleHead() {
+    public void handleHead(OutputStream out) throws IOException {
         String path = "target/classes"+fileName;
 
         File fileToUpload = new File(path);
@@ -127,7 +121,7 @@ public class Request {
         } else {
             response+="200 OK\r\n"+endResponse;
         }
-        return response;
+        out.write(response.getBytes(StandardCharsets.UTF_8));
     }
 
     public String getMethodeType(){

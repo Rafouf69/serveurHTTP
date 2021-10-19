@@ -4,6 +4,7 @@ package http.server;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
+import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -45,7 +46,7 @@ public class WebServer {
                 System.out.println("Connection, sending data.");
                 BufferedReader in = new BufferedReader(new InputStreamReader(
                         remote.getInputStream()));
-                PrintWriter out = new PrintWriter(remote.getOutputStream());
+                OutputStream out = remote.getOutputStream();
 
                 // read the data sent. We basically ignore it,
                 // stop reading once a blank line is hit. This
@@ -66,10 +67,10 @@ public class WebServer {
 
                 switch (myRequest.getMethodeType()) {
                     case "GET":
-                        out.println(myRequest.handleGet());
+                        myRequest.handleGet(out);
                         break;
                     case "HEAD":
-                        out.println(myRequest.handleHead());
+                        myRequest.handleHead(out);
                         break;
                 }
 
