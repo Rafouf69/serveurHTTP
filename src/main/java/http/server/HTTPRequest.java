@@ -24,7 +24,7 @@ public class HTTPRequest {
         int index = requestArray.indexOf("Sec-Fetch-Dest:");
 
         fetchDest = requestArray.get(index+1);
-
+// faudrait faire un switch ici
         if(requestArray.get(1).equals("/")){
             this.contentType="text/html";
             this.fileName = "/document/index.html";
@@ -36,6 +36,11 @@ public class HTTPRequest {
                 this.contentType="image/png";
                 this.fileName = requestArray.get(1);
             }
+            // modifier pour /?
+            if(requestArray.get(1).contains("/?")){
+                this.fileName = requestArray.get(1);
+            }
+
         }
         this.HTTPversion = requestArray.get(2);
         this.host = requestArray.get(4);
@@ -106,6 +111,41 @@ public class HTTPRequest {
             response="HTTP/1.0 400 ERROR\r\nServer: Bot\r\n\r\n";
             out.write(response.getBytes(StandardCharsets.UTF_8));
         }
+
+    }
+
+    public void handlePost(OutputStream out) throws IOException{
+        String[] data = fileName.split("/\\?");
+        String path = "target/classes"+data[0];
+        File fileToUpload = new File(path);
+
+        String response = "";
+        if(!fileToUpload.exists()) {
+            response += "HTTP/1.0 404 Not Found\r\ncontent-type: text/html\r\nServer: Bot\r\n\r\n";
+
+            fileToUpload = new File("target/classes/document/error.html");
+
+            BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(fileToUpload)));
+            for (String line; (line = reader.readLine()) != null; ) {
+                response += (line);
+            }
+        } else{
+            try{
+                String body = "";
+                BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(fileToUpload)));
+                for (String line; (line = reader.readLine()) != null;) {
+                    body+=(line);
+                }
+                response="HTTP/1.0 200 OK\r\ncontent-type: text/html\r\nServer: Bot\r\n\r\n";
+                out.write(response.getBytes(StandardCharsets.UTF_8));
+                out.write(body.getBytes(StandardCharsets.UTF_8));
+            }catch(IOException e){
+                response="HTTP/1.0 400 ERROR\r\nServer: Bot\r\n\r\n";
+                out.write(response.getBytes(StandardCharsets.UTF_8));
+            }
+        }
+
+
 
     }
 

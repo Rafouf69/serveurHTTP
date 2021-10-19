@@ -71,6 +71,8 @@ public class WebServer {
                     case "HEAD":
                         myRequest.handleHead(out);
                         break;
+                    case "POST":
+                        myRequest.handlePost(out);
                 }
 
                 /*
