@@ -2,19 +2,20 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Head</title>
+    <title>Put</title>
 </head>
+
 <body>
-    <h1>Head example</h1>
-    <button id="head-btn">Send head request</button>
+    <h1>PUT</h1>
+    <button id="put-btn">Send put request</button>
 </body>
 <script>
-    const button = document.getElementById('head-btn');
+    const button = document.getElementById('put-btn');
 
     button.addEventListener('click', async _ => {
         try {
             const response = await fetch('http://localhost:3000/', {
-                method: 'HEAD',
+                method: 'PUT',
                 headers: {
                     'Content-Type': "text/html"
                 }

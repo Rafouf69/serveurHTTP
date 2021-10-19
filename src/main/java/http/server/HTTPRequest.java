@@ -137,7 +137,7 @@ public class HTTPRequest {
                 for (String line; (line = reader.readLine()) != null;) {
                     body+=(line);
                 }
-                response="HTTP/1.0 200 OK\r\ncontent-type: text/html\r\nServer: Bot\r\n\r\n";
+                response="HTTP/1.0 201 OK\r\ncontent-type: text/html\r\nServer: Bot\r\n\r\n";
                 out.write(response.getBytes(StandardCharsets.UTF_8));
                 out.write(body.getBytes(StandardCharsets.UTF_8));
             }catch(IOException e){
