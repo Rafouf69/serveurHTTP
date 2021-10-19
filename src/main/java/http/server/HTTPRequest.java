@@ -40,6 +40,12 @@ public class HTTPRequest {
             if(requestArray.get(1).contains("/?")){
                 this.fileName = requestArray.get(1);
             }
+            if(requestArray.get(0).equals("PUT")){
+                this.fileName = requestArray.get(1)+".html";
+            }
+            if(requestArray.get(0).equals("DELETE")){
+                this.fileName = requestArray.get(1)+".html";
+            }
 
         }
         this.HTTPversion = requestArray.get(2);
@@ -47,7 +53,7 @@ public class HTTPRequest {
     }
 
     public void handleGet(OutputStream out) throws IOException {
-        ClassLoader classloader = Thread.currentThread().getContextClassLoader();
+       ClassLoader classloader = Thread.currentThread().getContextClassLoader();
 
         System.out.println(fileName);
 
@@ -148,6 +154,44 @@ public class HTTPRequest {
 
 
 
+    }
+    public void handlePut(OutputStream out) throws IOException{
+        String path = "target/classes"+fileName;
+        File fileToCreate = new File(path);
+
+        String response = "";
+        if(fileToCreate.exists()){
+            fileToCreate.delete();
+            fileToCreate.createNewFile();
+            response="HTTP/1.0 204 No Content\r\nContent-Location: "+ path +"\r\nServer: Bot\r\n\r\n";
+            out.write(response.getBytes(StandardCharsets.UTF_8));
+        } else{
+            fileToCreate.createNewFile();
+            response="HTTP/1.0 201 Created\r\nContent-Location: "+ path +"\r\nServer: Bot\r\n\r\n";
+            System.out.println(response);
+            out.write(response.getBytes(StandardCharsets.UTF_8));
+        }
+    }
+
+    public void handleDelete(OutputStream out) throws IOException{
+        String path = "target/classes"+fileName;
+        File fileToDelete = new File(path);
+
+        String response = "";
+        if(fileToDelete.exists()){
+            fileToDelete.delete();
+            response="HTTP/1.0 204 No Content\r\nServer: Bot\r\n\r\n";
+            out.write(response.getBytes(StandardCharsets.UTF_8));
+        } else {
+            response += "HTTP/1.0 404 Not Found\r\ncontent-type: text/html\r\nServer: Bot\r\n\r\n";
+
+            fileToDelete = new File("target/classes/document/error.html");
+
+            BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(fileToDelete)));
+            for (String line; (line = reader.readLine()) != null; ) {
+                response += (line);
+            }
+        }
     }
 
     public void handleHead(OutputStream out) throws IOException {

@@ -73,6 +73,13 @@ public class WebServer {
                         break;
                     case "POST":
                         myRequest.handlePost(out);
+                        break;
+                    case "PUT":
+                        myRequest.handlePut(out);
+                        break;
+                    case "DELETE":
+                        myRequest.handleDelete(out);
+                        break;
                 }
 
                 /*
