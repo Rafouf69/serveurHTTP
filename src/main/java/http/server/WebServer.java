@@ -7,6 +7,7 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.HashMap;
 
 /**
  * Example program from Chapter 1 Programming Spiders, Bots and Aggregators in
@@ -51,18 +52,36 @@ public class WebServer {
                 // stop reading once a blank line is hit. This
                 // blank line signals the end of the client HTTP
                 // headers.
-                String request="";
+                String header="";
                 String str = ".";
-                while (str != null && !str.equals("")){
+                HashMap<String, String> body = new HashMap<>();
+
+                while (str!=null && !str.equals("")){
                     str = in.readLine();
-                    request += str+" ";
+                    header += str+" ";
                 }
 
-                System.out.println(request);
+                if(header.contains("Content-Length")){
+                    String[]content = header.split(" ");
+                    String boundary = "";
+                    for(int i=0; i<content.length; i++){
+                        if(content[i].contains("boundary")){
+                            String[] boundaryArray = content[i].split("boundary=");
+                            boundary = boundaryArray[1];
+                        }
+                    }
+                    str = in.readLine();
+                    while(!str.equals("--" + boundary + "--")){
+                        assert boundary.equals(str);
+                        String key = in.readLine().split("=")[1].replace('"',' ').strip();
+                        in.readLine();
+                        String value = in.readLine();
+                        body.put(key, value);
+                        str = in.readLine();
+                    }
+                }
 
-
-
-                HTTPRequest myRequest = new HTTPRequest(request);
+                HTTPRequest myRequest = new HTTPRequest(header, body);
 
                 switch (myRequest.getMethodeType()) {
                     case "GET":
@@ -82,21 +101,10 @@ public class WebServer {
                         break;
                 }
 
-                /*
-                // Send the response
-                // Send the headers
-                out.println("HTTP/1.0 200 OK");
-                out.println("Content-Type: text/html");
-                out.println("Server: Bot");
-                // this blank line signals the end of the headers
-                out.println("");
-                // Send the HTML page
-                out.println("<H1>Welcome to the Ultra Mini-WebServer</H1>");
-                */
                 out.flush();
                 remote.close();
             } catch (Exception e) {
-                System.out.println("Error: " + e);
+                System.out.println("Error WebServer: " + e);
             }
         }
     }

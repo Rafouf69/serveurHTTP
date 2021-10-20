@@ -3,10 +3,7 @@ package http.server;
 
 import java.io.*;
 import java.nio.charset.StandardCharsets;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Locale;
-import java.util.Base64;
+import java.util.*;
 import java.util.zip.Deflater;
 
 public class HTTPRequest {
@@ -16,8 +13,11 @@ public class HTTPRequest {
     private String host;
     private String fetchDest;
     private String contentType;
+    private HashMap<String, String> body;
 
-    public HTTPRequest(String requestHeader){
+    public HTTPRequest(String requestHeader, HashMap<String, String> body){
+        this.body = body;
+        System.out.println("size body : "+body.size());
         List<String> requestArray = Arrays.asList(requestHeader.split(" "));
         this.typeMethode = requestArray.get(0);
 
@@ -91,7 +91,7 @@ public class HTTPRequest {
             imageInFile.close();
             System.out.println("Image Successfully Manipulated!");
 
-            response = "HTTP/1.0 200 OK\r\ncontent-length: "+file.length()/8+"\r\ncontent-type: image/png\r\nServer: Bot\r\n\r\n";
+            response = "HTTP/1.0 200 OK\r\ncontent-length: "+file.length()+"\r\ncontent-type: image/png\r\nServer: Bot\r\n\r\n";
             out.write(response.getBytes(StandardCharsets.UTF_8));
 
             out.write(imageData);
