@@ -3,6 +3,7 @@
 package http.server;
 
 import java.io.BufferedReader;
+import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.ServerSocket;
@@ -67,6 +68,7 @@ public class WebServer {
                     for(int i=0; i<content.length; i++){
                         if(content[i].contains("boundary")){
                             String[] boundaryArray = content[i].split("boundary=");
+                            System.out.println(boundaryArray.length);
                             boundary = boundaryArray[1];
                         }
                     }
@@ -103,7 +105,9 @@ public class WebServer {
 
                 out.flush();
                 remote.close();
-            } catch (Exception e) {
+            } catch ( IOException e){
+                System.out.println("error Webserver : "+e);
+            }catch (Exception e) {
                 System.out.println("Error WebServer: " + e);
             }
         }

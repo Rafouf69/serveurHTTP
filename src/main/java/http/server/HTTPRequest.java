@@ -4,7 +4,6 @@ package http.server;
 import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
-import java.util.zip.Deflater;
 
 public class HTTPRequest {
     private String typeMethode;
@@ -17,13 +16,14 @@ public class HTTPRequest {
 
     public HTTPRequest(String requestHeader, HashMap<String, String> body){
         this.body = body;
-        System.out.println("size body : "+body.size());
         List<String> requestArray = Arrays.asList(requestHeader.split(" "));
         this.typeMethode = requestArray.get(0);
 
         int index = requestArray.indexOf("Sec-Fetch-Dest:");
 
         fetchDest = requestArray.get(index+1);
+        System.out.println(fetchDest);
+
 // faudrait faire un switch ici
         if(requestArray.get(1).equals("/")){
             this.contentType="text/html";
@@ -32,6 +32,9 @@ public class HTTPRequest {
             if(fetchDest.equals("document") && !requestArray.get(1).toLowerCase(Locale.ROOT).contains("png")){
                 this.contentType="text/html";
                 this.fileName = requestArray.get(1)+".html";
+            }else if(fetchDest.equals("script")) {
+                this.contentType="application/javascript";
+                this.fileName = requestArray.get(1);
             }else{
                 this.contentType="image/png";
                 this.fileName = requestArray.get(1);
@@ -61,11 +64,13 @@ public class HTTPRequest {
 
         File fileToUpload = new File(path);
 
-
+        System.out.println(!fileToUpload.exists());
 
         String response = "";
         if(!fileToUpload.exists()){
             response+="HTTP/1.0 404 Not Found\r\ncontent-type: text/html\r\nServer: Bot\r\n\r\n";
+
+            System.out.println();
 
             fileToUpload = new File("target/classes/document/error.html");
 
@@ -73,6 +78,7 @@ public class HTTPRequest {
             for (String line; (line = reader.readLine()) != null;) {
                 response+=(line);
             }
+            out.write(response.getBytes(StandardCharsets.UTF_8));
         } else {
             if(fileName.contains("html")){
                 this.handleGetText(fileToUpload, out);
@@ -96,6 +102,7 @@ public class HTTPRequest {
 
             out.write(imageData);
         } catch ( IOException e) {
+            System.out.println("error httprequest : "+e);
             response = "HTTP/1.0 400 ERROR\r\nServer: Bot\r\n\r\n";
             out.write(response.getBytes(StandardCharsets.UTF_8));
         }
@@ -110,10 +117,11 @@ public class HTTPRequest {
             for (String line; (line = reader.readLine()) != null;) {
                 body+=(line);
             }
-            response="HTTP/1.0 200 OK\r\ncontent-type: text/html\r\nServer: Bot\r\n\r\n";
+            response="HTTP/1.0 200 OK\r\ncontent-type: "+contentType+"\r\nServer: Bot\r\n\r\n";
             out.write(response.getBytes(StandardCharsets.UTF_8));
             out.write(body.getBytes(StandardCharsets.UTF_8));
         }catch(IOException e){
+            System.out.println("error httprequest : "+e);
             response="HTTP/1.0 400 ERROR\r\nServer: Bot\r\n\r\n";
             out.write(response.getBytes(StandardCharsets.UTF_8));
         }
@@ -147,6 +155,7 @@ public class HTTPRequest {
                 out.write(response.getBytes(StandardCharsets.UTF_8));
                 out.write(body.getBytes(StandardCharsets.UTF_8));
             }catch(IOException e){
+                System.out.println("error httprequest : "+e);
                 response="HTTP/1.0 400 ERROR\r\nServer: Bot\r\n\r\n";
                 out.write(response.getBytes(StandardCharsets.UTF_8));
             }
@@ -161,12 +170,13 @@ public class HTTPRequest {
 
         String response = "";
         if(fileToCreate.exists()){
-            fileToCreate.delete();
-            fileToCreate.createNewFile();
             response="HTTP/1.0 204 No Content\r\nContent-Location: "+ path +"\r\nServer: Bot\r\n\r\n";
             out.write(response.getBytes(StandardCharsets.UTF_8));
         } else{
             fileToCreate.createNewFile();
+            FileOutputStream fileOutputStream = new FileOutputStream(fileToCreate);
+            String output = body.get("file");
+            fileOutputStream.write(output.getBytes(StandardCharsets.UTF_8));
             response="HTTP/1.0 201 Created\r\nContent-Location: "+ path +"\r\nServer: Bot\r\n\r\n";
             System.out.println(response);
             out.write(response.getBytes(StandardCharsets.UTF_8));
